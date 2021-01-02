@@ -5,7 +5,7 @@ import { CreateWindow, HasWindow } from './window';
 
 export type OnWindowCreated = () => Promise<void>;
 
-const log = MakeLogger('electronSetup');
+const log = MakeLogger('electronSetup', true);
 const err = MakeError('electronSetup-err');
 
 async function WhenReady(windowCreated: OnWindowCreated) {

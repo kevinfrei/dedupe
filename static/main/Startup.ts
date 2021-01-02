@@ -1,5 +1,5 @@
 import { MakeLogger } from '@freik/core-utils';
-import { asyncSend, CommsSetup } from './Communication';
+import { CommsSetup } from './Communication';
 
 const log = MakeLogger('Startup', true);
 
@@ -13,10 +13,12 @@ export function InitBeforeAnythingElse(): void {
 // This is awaited upon initial window creation
 export async function WindowStartup(): Promise<void> {
   log('Window Startup Invoked!');
-  setInterval(() => {
+  setTimeout(() => {
+    log('Interval hit');
+    /*
     const now = new Date();
     const str = now.toTimeString();
     const trimmed = str.substr(0, str.indexOf(' '));
-    asyncSend({ 'main-process-status': trimmed });
+    asyncSend({ 'main-process-status': trimmed });*/
   }, 1000);
 }

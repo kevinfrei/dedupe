@@ -26,9 +26,10 @@ declare let window: MyWindow;
 window.addEventListener('DOMContentLoaded', () => {
   // eslint-disable-next-line no-debugger
   if (false) debugger;
-
+  err('DOM Content loaded');
   window.ipc = ipcRenderer;
   if (remote) {
+    err('remote is set');
     window.remote = remote;
   } else {
     err('remote is falsy :(');
@@ -37,6 +38,7 @@ window.addEventListener('DOMContentLoaded', () => {
     window.isDev = isDev;
   }
   if (window.initApp) {
+    err('Calling initApp');
     window.initApp();
   } else {
     err('FAILURE: No window.initApp() attached.');
