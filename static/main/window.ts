@@ -39,7 +39,7 @@ export function CreateWindow(windowCreated: OnWindowCreated): void {
   // Create the window, but don't show it just yet
   mainWindow = new BrowserWindow({
     ...getBrowserWindowPos(windowPos),
-    title: 'TODO: Change name from electreact',
+    title: 'File Deduplicator',
     // backgroundColor: '#282c34', // Unnecessary if you're not showing :)
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
