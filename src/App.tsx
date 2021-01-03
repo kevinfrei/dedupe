@@ -14,7 +14,11 @@ function App() {
       <div style={{ margin: 10 }}>
         <Checkbox label="Do quick 'check' pass before full file hashing" />
       </div>
-      <PrimaryButton text="Start Scanning" disabled={folders.length === 0} />
+      <PrimaryButton
+        text="Start Scanning"
+        disabled={folders.length === 0}
+        onClick={() => {}}
+      />
     </div>
   );
 }

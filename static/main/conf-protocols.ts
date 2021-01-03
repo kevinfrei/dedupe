@@ -1,5 +1,7 @@
 import { MakeLogger } from '@freik/core-utils';
 import { ProtocolRequest, ProtocolResponse } from 'electron';
+import { WatchSources } from '../dupe/WatchSources';
+import * as persist from './persist';
 
 export type FileResponse = string | ProtocolResponse;
 export type BufferResponse = Buffer | ProtocolResponse;
@@ -113,5 +115,5 @@ export function configureProtocols(): void {
 // This sets up reactive responses to changes, for example:
 // locations change, so music needs to be rescanned
 export function configureListeners(): void {
-  //  persist.subscribe('locations', UpdateDB);
+  persist.subscribe('folders', WatchSources);
 }

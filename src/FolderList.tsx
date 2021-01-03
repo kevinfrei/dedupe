@@ -1,16 +1,16 @@
 import { IconButton, Label, PrimaryButton, Stack } from '@fluentui/react';
 import { useRecoilState } from 'recoil';
 import { ShowOpenDialog } from './MyWindow';
-import { foldersToScanState } from './Recoil/State';
+import { foldersToScanState, FolderSummary } from './Recoil/State';
 
-function moveUp(folders: string[], index: number): string[] {
+function moveUp(folders: FolderSummary[], index: number): FolderSummary[] {
   const newArray = [...folders];
   newArray[index] = folders[index - 1];
   newArray[index - 1] = folders[index];
   return newArray;
 }
 
-function moveDown(folders: string[], index: number): string[] {
+function moveDown(folders: FolderSummary[], index: number): FolderSummary[] {
   const newArray = [...folders];
   newArray[index] = folders[index + 1];
   newArray[index + 1] = folders[index];
@@ -28,7 +28,7 @@ export function FolderList(): JSX.Element {
       <Label>&nbsp;Please add a folder</Label>
     ) : (
       folders.map((elem, index) => (
-        <Stack horizontal key={elem}>
+        <Stack horizontal key={elem.name}>
           <IconButton
             onClick={() => setFolders(folders.filter((val) => val !== elem))}
             iconProps={{ iconName: 'Delete' }}
@@ -44,7 +44,7 @@ export function FolderList(): JSX.Element {
             disabled={index === folders.length - 1}
           />
           &nbsp;
-          <Label>{elem}</Label>
+          <Label>{elem.name}</Label>
         </Stack>
       ))
     );
@@ -56,7 +56,7 @@ export function FolderList(): JSX.Element {
         onClick={() => {
           const locs = GetDirs();
           if (locs) {
-            setFolders([...folders, ...locs]);
+            setFolders([...folders, ...locs.map((loc) => ({ name: loc }))]);
           }
         }}
       />
