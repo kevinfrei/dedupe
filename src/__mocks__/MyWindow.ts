@@ -57,18 +57,7 @@ export function UnsubscribeMediaMatcher(
 */
 
 const fakeStorage: Map<string, string> = new Map<string, string>([
-  ['CurrentView', '1'],
-  ['mute', 'false'],
-  ['volume', '0.12'],
-  ['shuffle', 'false'],
-  ['repeat', 'false'],
-  ['locations', '["/Users/freik/Music/iTunes/iTunes Media/Music"]'],
-  ['rSortWithArticles', 'false'],
-  ['FullAlbumsOnly', 'true'],
-  ['MinSongCount', '1'],
-  ['downloadAlbumArtwork', 'true'],
-  ['downloadArtistArtwork', 'true'],
-  ['saveAlbumArtworkWithMusic', 'true'],
+  ['folders', '[]'],
   ['albumCoverName', '".coverArt"'],
 ]);
 
@@ -86,8 +75,8 @@ function MockWrite(key?: string): Promise<void> {
     const item = key.substr(0, split);
     const value = key.substr(split + 1);
     fakeStorage.set(item, value);
-    err('Saved!');
-    err(key);
+    log('Saved!');
+    log(key);
     resolve();
   });
 }

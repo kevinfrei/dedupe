@@ -1,25 +1,18 @@
-import { Type } from '@freik/core-utils';
-import { atom } from 'recoil';
-import { bidirectionalSyncWithTranslateEffect } from './Helpers';
+import { atom, atomFamily } from 'recoil';
+import { syncWithMainEffect } from './Helpers';
 
-export type FolderSummary = { name: string; size?: number };
-
-export const foldersToScanState = atom<FolderSummary[]>({
+export const foldersToScanState = atom<string[]>({
   key: 'folders',
   default: [],
-  effects_UNSTABLE: [
-    bidirectionalSyncWithTranslateEffect(
-      (val) => val,
-      (fton) => {
-        if (
-          Type.isArrayOf(fton, (obj): obj is FolderSummary =>
-            Type.hasStr(obj, 'name'),
-          )
-        ) {
-          return fton;
-        }
-      },
-      true,
-    ),
-  ],
+  effects_UNSTABLE: [syncWithMainEffect(true)],
+});
+
+export const folderFileCountFamily = atomFamily<number, string>({
+  key: 'fileCount',
+  default: (folder) => -1,
+});
+
+export const computeState = atom<string>({
+  key: 'compute-state',
+  default: '',
 });

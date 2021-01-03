@@ -1,5 +1,10 @@
+import { MakeError } from '@freik/core-utils';
 import { promises as fsp } from 'fs';
 import path from 'path';
+import { asyncSend } from '../main/Communication';
+import { WaitForSources } from './WatchSources';
+
+const err = MakeError('Scanner-err');
 
 const abortRequests: Set<string> = new Set();
 
@@ -24,20 +29,38 @@ export async function getSizes(
   const queue: string[] = [folder];
   while (queue.length !== 0) {
     if (shouldAbort(folder)) {
+      err(`Aborting ${folder}`);
       return;
     }
     const item = queue.pop();
     if (!item) continue;
-    const stat = await fsp.stat(item);
-    if (stat.isDirectory()) {
-      // Push all the child folders into the queue
-      const children = await fsp.readdir(item);
-      for (const child of children) {
-        queue.push(path.join(item, child));
+    try {
+      const stat = await fsp.stat(item);
+      if (stat.isDirectory()) {
+        // Push all the child folders into the queue
+        try {
+          const children = await fsp.readdir(item);
+          for (const child of children) {
+            queue.push(path.join(item, child));
+          }
+        } catch (e) {
+          err(`Failed reading directory ${item}`);
+          err(e);
+          continue;
+        }
+      } else {
+        sizes.set(item, stat.size);
       }
-    } else {
-      sizes.set(item, stat.size);
+    } catch (e) {
+      err(`Failed to stat(${item})`);
+      err(e);
+      continue;
     }
   }
   return sizes;
+}
+
+export async function startScan(): Promise<void> {
+  await WaitForSources();
+  asyncSend({ 'compute-state': 'Looking for duplicate files' });
 }

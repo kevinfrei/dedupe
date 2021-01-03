@@ -5,6 +5,7 @@ import {
   DefaultValue,
   RecoilState,
   SetterOrUpdater,
+  useRecoilCallback,
   useRecoilState,
 } from 'recoil';
 import {
@@ -16,6 +17,7 @@ import {
 } from '../ipc';
 import logo from '../logo.svg';
 import { InitialWireUp } from '../MyWindow';
+import { computeState, folderFileCountFamily } from './State';
 
 export type StatePair<T> = [T, SetterOrUpdater<T>];
 
@@ -228,6 +230,22 @@ export function getAtomValuesEffect(): void {
 // This is a react component to enable the IPC subsystem to talk to the store,
 // keep track of which mode we're in, and generally deal with "global" silliness
 export function Utilities(): JSX.Element {
+  const onFolderSize = useRecoilCallback(({ set }) => (val: FTONData) => {
+    log('Got folder-size message:');
+    log(val);
+    if (
+      Type.hasStr(val, 'name') &&
+      Type.has(val, 'size') &&
+      Type.isNumber(val.size)
+    ) {
+      set(folderFileCountFamily(val.name), val.size);
+    }
+  });
+  const onStateUpdate = useRecoilCallback(({ set }) => (val: FTONData) => {
+    if (Type.isString(val)) {
+      set(computeState, val);
+    }
+  });
   useEffect(InitialWireUp);
   useEffect(() => {
     const key = Subscribe('main-process-status', (val: FTONData) => {
@@ -238,7 +256,13 @@ export function Utilities(): JSX.Element {
         err(val);
       }
     });
-    return () => Unsubscribe(key);
+    const folderSizeKey = Subscribe('folder-size', onFolderSize);
+    const setStateKey = Subscribe('compute-state', onStateUpdate);
+    return () => {
+      Unsubscribe(key);
+      Unsubscribe(folderSizeKey);
+      Unsubscribe(setStateKey);
+    };
   });
   /*
   const handleWidthChange = useRecoilCallback(

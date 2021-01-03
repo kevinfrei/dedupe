@@ -55,6 +55,7 @@ type Registerer<T> = (
 ) => boolean;
 
 // Helper to check URL's & transition to async functions
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function registerProtocolHandler<ResponseType>(
   type: string,
   registerer: Registerer<ResponseType>,

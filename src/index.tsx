@@ -1,7 +1,6 @@
 import { initializeIcons } from '@uifabric/icons';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { RecoilRoot } from 'recoil';
 import App from './App';
 import './index.css';
 import { SetInit } from './MyWindow';
@@ -11,9 +10,7 @@ SetInit(() => {
   initializeIcons();
   ReactDOM.render(
     <React.StrictMode>
-      <RecoilRoot>
-        <App />
-      </RecoilRoot>
+      <App />
     </React.StrictMode>,
     document.getElementById('root'),
   );

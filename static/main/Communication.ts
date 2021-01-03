@@ -1,6 +1,7 @@
 import { FTON, FTONData, MakeError, MakeLogger } from '@freik/core-utils';
 import { ipcMain, shell } from 'electron';
 import { IpcMainInvokeEvent } from 'electron/main';
+import { startScan } from '../dupe/Scanner';
 import * as persist from './persist';
 import { SendToMain } from './window';
 
@@ -136,6 +137,7 @@ export function asyncSend(message: FTONData): void {
 export function CommsSetup(): void {
   // "complex" API's (not just save/restore data to the persist cache)
   registerFlattened('show-file', showFile);
+  registerFlattened('start-scan', startScan);
   /*
   registerFlattened('get-media-info', getMediaInfoForSong);
   registerFlattened('search', searchWholeWord);

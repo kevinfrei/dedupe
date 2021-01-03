@@ -1,16 +1,33 @@
 import { IconButton, Label, PrimaryButton, Stack } from '@fluentui/react';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { ShowOpenDialog } from './MyWindow';
-import { foldersToScanState, FolderSummary } from './Recoil/State';
+import {
+  computeState,
+  folderFileCountFamily,
+  foldersToScanState,
+} from './Recoil/State';
 
-function moveUp(folders: FolderSummary[], index: number): FolderSummary[] {
+function FolderDetail({ name }: { name: string }): JSX.Element {
+  const folderSize = useRecoilValue(folderFileCountFamily(name));
+  if (folderSize >= 0) {
+    return (
+      <Label>
+        {name}: {folderSize} files
+      </Label>
+    );
+  } else {
+    return <Label>{name}</Label>;
+  }
+}
+
+function moveUp(folders: string[], index: number): string[] {
   const newArray = [...folders];
   newArray[index] = folders[index - 1];
   newArray[index - 1] = folders[index];
   return newArray;
 }
 
-function moveDown(folders: FolderSummary[], index: number): FolderSummary[] {
+function moveDown(folders: string[], index: number): string[] {
   const newArray = [...folders];
   newArray[index] = folders[index + 1];
   newArray[index + 1] = folders[index];
@@ -23,28 +40,30 @@ function GetDirs(): string[] | void {
 
 export function FolderList(): JSX.Element {
   const [folders, setFolders] = useRecoilState(foldersToScanState);
+  const curState = useRecoilValue(computeState);
   const theList =
     folders.length === 0 ? (
       <Label>&nbsp;Please add a folder</Label>
     ) : (
       folders.map((elem, index) => (
-        <Stack horizontal key={elem.name}>
+        <Stack horizontal key={elem}>
           <IconButton
             onClick={() => setFolders(folders.filter((val) => val !== elem))}
             iconProps={{ iconName: 'Delete' }}
+            disabled={curState !== ''}
           />
           <IconButton
             onClick={() => setFolders(moveUp(folders, index))}
             iconProps={{ iconName: 'Up' }}
-            disabled={index === 0}
+            disabled={index === 0 || curState !== ''}
           />
           <IconButton
             onClick={() => setFolders(moveDown(folders, index))}
             iconProps={{ iconName: 'Down' }}
-            disabled={index === folders.length - 1}
+            disabled={index === folders.length - 1 || curState !== ''}
           />
           &nbsp;
-          <Label>{elem.name}</Label>
+          <FolderDetail name={elem} />
         </Stack>
       ))
     );
@@ -56,9 +75,10 @@ export function FolderList(): JSX.Element {
         onClick={() => {
           const locs = GetDirs();
           if (locs) {
-            setFolders([...folders, ...locs.map((loc) => ({ name: loc }))]);
+            setFolders([...folders, ...locs]);
           }
         }}
+        disabled={curState !== ''}
       />
     </div>
   );
