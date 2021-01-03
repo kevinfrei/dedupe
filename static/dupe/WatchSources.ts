@@ -57,11 +57,24 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function countItems<T, U, V>(map: Map<T, Map<U, V>>): number {
+  let count = 0;
+  for (const [, mp] of map) {
+    count += mp.size;
+  }
+  return count;
+}
+
 export async function WaitForSources(): Promise<void> {
   const folders = await persist.getItemAsync('folders');
   if (Type.isString(folders)) {
     while (!WatchSources(folders)) {
       await wait(500);
+      asyncSend({
+        'compute-state': `Looking for same-sized files ${countItems(
+          completedScanning,
+        )}`,
+      });
     }
     // Now, just to make sure, send the folder-size commands
     for (const [key, val] of completedScanning) {

@@ -1,4 +1,13 @@
-import { Checkbox, PrimaryButton } from '@fluentui/react';
+import {
+  Checkbox,
+  ContextualMenu,
+  IDragOptions,
+  Label,
+  Modal,
+  PrimaryButton,
+  Stack,
+  Text,
+} from '@fluentui/react';
 import { RecoilRoot, useRecoilValue } from 'recoil';
 import './App.css';
 import { FolderList } from './FolderList';
@@ -26,7 +35,28 @@ function FolderPicker(): JSX.Element {
 
 function StateDisplay(): JSX.Element {
   const curState = useRecoilValue(computeState);
-  return <div>{curState}</div>;
+  if (curState.trim().length === 0) {
+    return <></>;
+  }
+  const dragOptions: IDragOptions = {
+    moveMenuItemText: 'Move',
+    closeMenuItemText: 'Close',
+    menu: ContextualMenu,
+    keepInBounds: true,
+  };
+  const txt = curState.trim().split('. ');
+  return (
+    <Modal isOpen isBlocking dragOptions={dragOptions}>
+      <div style={{ margin: 10 }}>
+        <Stack>
+          <Label>Calculation progress</Label>
+          {txt.map((val, idx) => (
+            <Text key={idx}>{`${val}${idx < txt.length - 1 ? '.' : ''}`}</Text>
+          ))}
+        </Stack>
+      </div>
+    </Modal>
+  );
 }
 
 export default function App() {
