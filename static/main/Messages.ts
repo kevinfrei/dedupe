@@ -1,10 +1,9 @@
-import { FTON, MakeError, Type } from '@freik/core-utils';
+import { FTON, MakeError, MakeLogger, Type } from '@freik/core-utils';
 import { shell } from 'electron';
 import trash from 'trash';
 
+const log = MakeLogger('Messages', true);
 const err = MakeError('Messages-err');
-
-export type Handler<T> = (arg?: string) => Promise<T | void>;
 
 /**
  * Show a file in the shell
@@ -39,6 +38,8 @@ export async function trashFile(flattenedPaths?: string): Promise<void> {
     if (Type.isString(data) || Type.isArrayOfString(data)) {
       // TODO: Update the file list when the file has been deleted!
       await trash(data, { glob: false });
+      log('deleted files:');
+      log(data);
       return;
     }
   } catch (e) {

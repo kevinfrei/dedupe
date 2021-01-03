@@ -1,13 +1,36 @@
 import { IconButton } from '@fluentui/react';
 import { CSSProperties } from 'react';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil';
 import './App.css';
-import { TrashFiles } from './ipc';
+import { RemoveFiles } from './Recoil/api';
 import {
   computeState,
   deletedFilesState,
   dupeFilesState,
+  foldersToScanState,
 } from './Recoil/State';
+
+type PriList = { priority: number; name: string }[];
+
+function makePriList(set: Set<string>, priority: string[]): PriList {
+  const result = [];
+  for (const nm of set) {
+    for (let i = 0; i < priority.length; i++) {
+      if (nm.toLocaleLowerCase().startsWith(priority[i].toLowerCase())) {
+        result.push({ priority: i, name: nm });
+        break;
+      }
+    }
+  }
+  return result.sort((a, b) => a.priority - b.priority);
+}
+
+function isOnlyPreferred(name: string, priList: PriList): boolean {
+  return (
+    priList.length < 2 ||
+    (priList[0].name === name && priList[1].priority > priList[0].priority)
+  );
+}
 
 export function PickFileToDelete({
   files,
@@ -17,13 +40,16 @@ export function PickFileToDelete({
   // TODO: Use the source list ordering to prioritize the 'original' file
   const [deletedFiles, setDeletedFiles] = useRecoilState(deletedFilesState);
   const localDel = new Set([...files].filter((val) => deletedFiles.has(val)));
+  const foldersToScan = useRecoilValue(foldersToScanState);
+
+  const priList = makePriList(files, foldersToScan);
   // For files that have already been deleted
   const isDeleted = (name: string) => localDel.has(name);
   // For files where the rest of the dupe-set have been deleted
   const isSolo = (name: string) =>
     localDel.size === files.size - 1 && !localDel.has(name);
   // For files where this on is the 'preferred' file to hang on to
-  const isPreferred = (name: string) => false;
+  const isPreferred = (name: string) => isOnlyPreferred(name, priList);
   const pickStyle = (name: string): CSSProperties => {
     if (isSolo(name)) {
       return {};
@@ -34,6 +60,12 @@ export function PickFileToDelete({
     // TODO: { fontWeight: 'bold' } for the 'preferred to keep' file
     return isPreferred(name) ? { fontWeight: 'bold' } : {};
   };
+
+  const onTrashClick = useRecoilCallback((cbInterface) => (name: string) => {
+    // TODO: Verify if you try to delete the preferred item...
+    RemoveFiles(cbInterface, name);
+  });
+
   return (
     <ul>
       {[...files].map((name) => (
@@ -41,13 +73,7 @@ export function PickFileToDelete({
           <IconButton
             iconProps={{ iconName: 'delete' }}
             disabled={isDeleted(name) || isSolo(name)}
-            onClick={() => {
-              // TODO: Verify if this is the preferred file
-              TrashFiles(name);
-              const newDelFiles = new Set(deletedFiles);
-              newDelFiles.add(name);
-              setDeletedFiles(newDelFiles);
-            }}
+            onClick={() => onTrashClick(name)}
           />
           <span style={pickStyle(name)}>{name}</span>
         </li>
