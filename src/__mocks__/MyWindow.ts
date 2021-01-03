@@ -3,6 +3,7 @@ import { MakeError, MakeLogger, Type } from '@freik/core-utils';
 import { OpenDialogSyncOptions } from 'electron/main';
 
 const log = MakeLogger('MyWindow-mock');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const err = MakeError('MyWindow-mock-err');
 
 export function ShowOpenDialog(
