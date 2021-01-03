@@ -1,6 +1,6 @@
-import { IconButton } from '@fluentui/react';
+import { IconButton, PrimaryButton } from '@fluentui/react';
 import { CSSProperties } from 'react';
-import { useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilCallback, useRecoilValue } from 'recoil';
 import './App.css';
 import { RemoveFiles } from './Recoil/api';
 import {
@@ -38,7 +38,7 @@ export function PickFileToDelete({
   files: Set<string>;
 }): JSX.Element {
   // TODO: Use the source list ordering to prioritize the 'original' file
-  const [deletedFiles, setDeletedFiles] = useRecoilState(deletedFilesState);
+  const deletedFiles = useRecoilValue(deletedFilesState);
   const localDel = new Set([...files].filter((val) => deletedFiles.has(val)));
   const foldersToScan = useRecoilValue(foldersToScanState);
 
@@ -85,17 +85,34 @@ export function PickFileToDelete({
 export function DupeDisplay(): JSX.Element {
   const dupeFiles = useRecoilValue(dupeFilesState);
   const curState = useRecoilValue(computeState);
+  const foldersToScan = useRecoilValue(foldersToScanState);
+
   const style: CSSProperties = curState !== ' ' ? { display: 'none' } : {};
   // TODO: Add a "delete dupes of preferred files" button
+  const internal = (
+    <ul>
+      {[...dupeFiles].map(([str, strSet]) => (
+        <li key={str}>
+          <PickFileToDelete files={strSet} />
+        </li>
+      ))}
+    </ul>
+  );
+  const onRemoveAlts = useRecoilCallback((cbInterface) => () => {
+    for (const [, dupeFileSet] of dupeFiles) {
+      const priList = makePriList(dupeFileSet, foldersToScan);
+      if (priList.length && isOnlyPreferred(priList[0].name, priList)) {
+        RemoveFiles(
+          cbInterface,
+          priList.filter((v, i) => i !== 0).map((v) => v.name),
+        );
+      }
+    }
+  });
   return (
     <div style={style}>
-      <ul>
-        {[...dupeFiles].map(([str, strSet]) => (
-          <li key={str}>
-            <PickFileToDelete files={strSet} />
-          </li>
-        ))}
-      </ul>
+      <PrimaryButton text="Remove alternatives" onClick={onRemoveAlts} />
+      {dupeFiles.size === 0 ? 'No duplicates found' : internal}
     </div>
   );
 }
