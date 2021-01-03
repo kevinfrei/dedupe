@@ -1,11 +1,38 @@
-import { IconButton, Label, PrimaryButton, Stack } from '@fluentui/react';
+import {
+  Checkbox,
+  IconButton,
+  Label,
+  PrimaryButton,
+  Stack,
+} from '@fluentui/react';
+import { CSSProperties } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { ShowOpenDialog } from './MyWindow';
+import './App.css';
+import { InvokeMain, ShowOpenDialog } from './MyWindow';
 import {
   computeState,
   folderFileCountFamily,
   foldersToScanState,
 } from './Recoil/State';
+
+export function FolderPicker(): JSX.Element {
+  const folders = useRecoilValue(foldersToScanState);
+  const curState = useRecoilValue(computeState);
+  const style: CSSProperties = curState === ' ' ? { display: 'none' } : {};
+  return (
+    <div style={style}>
+      <FolderList />
+      <div style={{ margin: 10 }}>
+        <Checkbox label="Do quick 'check' pass before full file hashing" />
+      </div>
+      <PrimaryButton
+        text="Start Scanning"
+        disabled={folders.length === 0 || curState !== ''}
+        onClick={() => InvokeMain('start-scan')}
+      />
+    </div>
+  );
+}
 
 function FolderDetail({ name }: { name: string }): JSX.Element {
   const folderSize = useRecoilValue(folderFileCountFamily(name));
