@@ -32,34 +32,9 @@ export function UnsubscribeMediaMatcher(
 ): void {
   /* Still don't do anything */
 }
-/*
-  // "complex" API's (not just save/restore data to the persist cache)
-  registerFlattened('get-media-info', getMediaInfoForSong);
-  registerFlattened('search', searchWholeWord);
-  registerFlattened('subsearch', searchSubstring);
-  registerFlattened('show-file', showFile);
-  registerFlattened('rename-playlist', renamePlaylist);
-  registerFlattened('delete-playlist', deletePlaylist);
-  registerFlattened('get-playlists', getPlaylists);
-  registerFlattened('save-playlist', savePlaylist);
-  registerFlattened('load-playlist', loadPlaylist);
-  registerFlattened('set-playlists', checkPlaylists);
-
-  // Some "do something, please" API's
-  register('set-media-info', setMediaInfoForSong);
-  registerFlattened('manual-rescan', RescanDB);
-  registerFlattened('flush-image-cache', FlushImageCache);
-
-  // These are the general "just asking for something to read/written to disk"
-  // functions. Media Info, Search, and MusicDB stuff needs a different handler
-  // because they don't just read/write to disk.
-  register('read-from-storage', readFromStorage);
-  register('write-to-storage', writeToStorage);
-*/
 
 const fakeStorage: Map<string, string> = new Map<string, string>([
   ['folders', '[]'],
-  ['albumCoverName', '".coverArt"'],
 ]);
 
 function MockWrite(key?: string): Promise<void> {

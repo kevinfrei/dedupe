@@ -1,14 +1,15 @@
 import { FTON, FTONData, MakeError, MakeLogger } from '@freik/core-utils';
-import { ipcMain, shell } from 'electron';
+import { ipcMain } from 'electron';
 import { IpcMainInvokeEvent } from 'electron/main';
 import { startScan } from '../dupe/Scanner';
+import { showFile, trashFile } from './Messages';
 import * as persist from './persist';
 import { SendToMain } from './window';
 
 const log = MakeLogger('Communication');
 const err = MakeError('Communication-err');
 
-type Handler<T> = (arg?: string) => Promise<T | void>;
+export type Handler<T> = (arg?: string) => Promise<T | void>;
 
 /**
  * Read a value from persistence by name, returning it's unprocessed contents
@@ -109,19 +110,6 @@ export function register(key: string, handleIt: Handler<string>): void {
 }
 
 /**
- * Show a file in the shell
- * @param filePath - The path to the file to show
- */
-function showFile(filePath?: string): Promise<void> {
-  return new Promise((resolve) => {
-    if (filePath) {
-      shell.showItemInFolder(filePath);
-    }
-    resolve();
-  });
-}
-
-/**
  * Send a message to the rendering process
  *
  * @param  {FTONData} message
@@ -138,26 +126,10 @@ export function CommsSetup(): void {
   // "complex" API's (not just save/restore data to the persist cache)
   registerFlattened('show-file', showFile);
   registerFlattened('start-scan', startScan);
-  /*
-  registerFlattened('get-media-info', getMediaInfoForSong);
-  registerFlattened('search', searchWholeWord);
-  registerFlattened('subsearch', searchSubstring);
-  registerFlattened('rename-playlist', renamePlaylist);
-  registerFlattened('delete-playlist', deletePlaylist);
-  registerFlattened('get-playlists', getPlaylists);
-  registerFlattened('save-playlist', savePlaylist);
-  registerFlattened('load-playlist', loadPlaylist);
-  registerFlattened('set-playlists', checkPlaylists);
-
-  // Some "do something, please" API's
-  register('set-media-info', setMediaInfoForSong);
-  registerFlattened('manual-rescan', RescanDB);
-  registerFlattened('flush-image-cache', FlushImageCache);
+  registerFlattened('trash-file', trashFile);
 
   // These are the general "just asking for something to read/written to disk"
-  // functions. Media Info, Search, and MusicDB stuff needs a different handler
-  // because they don't just read/write to disk.
-  */
+  // functions.
   register('read-from-storage', readFromStorage);
   register('write-to-storage', writeToStorage);
 }

@@ -13,3 +13,10 @@ starting there seems reasonable.
 - Second scan: Just the first X kb of a file to see if they _might_ be the same
 - Final scan: Crypto-hash each file, I think.
 - Display UI to remove/flip around file duplicates
+
+I'm to the 'UI to remove files' part, and here are some features I should add in
+the future:
+
+- Ignore these types/Only check these types list(s)
+- Results filtering: Size, type, location?
+- Show file size discovery progress

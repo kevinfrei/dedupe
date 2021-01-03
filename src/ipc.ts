@@ -45,6 +45,10 @@ export async function WriteToStorage(key: string, data: string): Promise<void> {
   await InvokeMain('write-to-storage', key + ':' + data);
 }
 
+export async function TrashFiles(files: string | string[]): Promise<void> {
+  await InvokeMain('trash-file', FTON.stringify(files));
+}
+
 export async function SearchWhole(
   searchTerm: string,
 ): Promise<SearchResults | void> {

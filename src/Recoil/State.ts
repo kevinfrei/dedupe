@@ -17,7 +17,12 @@ export const computeState = atom<string>({
   default: '',
 });
 
-export const dupeFilesState = atom<Map<string, string[]>>({
+export const dupeFilesState = atom<Map<string, Set<string>>>({
   key: 'dupe-files',
   default: new Map(),
+});
+
+export const deletedFilesState = atom<Set<string>>({
+  key: 'deleted-files',
+  default: new Set(),
 });

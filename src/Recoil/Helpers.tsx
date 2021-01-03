@@ -247,13 +247,8 @@ export function Utilities(): JSX.Element {
     }
   });
   const onDupeFiles = useRecoilCallback(({ set }) => (val: FTONData) => {
-    if (Type.isArrayOf(val, Type.isSetOfString)) {
-      const dupeFiles: Map<string, string[]> = new Map();
-      for (const set of val) {
-        const arr = [...set];
-        dupeFiles.set(arr[0], arr);
-      }
-      set(dupeFilesState, dupeFiles);
+    if (Type.isMapOf(val, Type.isString, Type.isSetOfString)) {
+      set(dupeFilesState, val);
     }
   });
   useEffect(InitialWireUp);
