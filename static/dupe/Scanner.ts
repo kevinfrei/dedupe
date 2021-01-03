@@ -95,4 +95,5 @@ export async function startScan(): Promise<void> {
   const hashes = await getHashes(sizes);
   // This keeps stuff disabled, but hides the modal dialog
   asyncSend({ 'compute-state': ' ' });
+  asyncSend({ 'dupe-files': [...hashes.values()] });
 }

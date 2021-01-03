@@ -1,12 +1,12 @@
 {
-  "name": "electreact",
+  "name": "file-dedupe",
   "version": "0.1.0",
   "private": true,
-  "description": "Electron React Starter Kit",
+  "description": "File Deduplication Tool",
   "author": "Kevin Frei <kevinfrei@hotmail.com>",
   "build": {
-    "appId": "com.electreact.freik",
-    "productName": "Electron React Starter Kit",
+    "appId": "com.dedupe.freik",
+    "productName": "File Deduplicator",
     "mac": {
       "icon": "static/icon.icns"
     }

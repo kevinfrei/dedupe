@@ -17,7 +17,7 @@ import {
 } from '../ipc';
 import logo from '../logo.svg';
 import { InitialWireUp } from '../MyWindow';
-import { computeState, folderFileCountFamily } from './State';
+import { computeState, dupeFilesState, folderFileCountFamily } from './State';
 
 export type StatePair<T> = [T, SetterOrUpdater<T>];
 
@@ -246,6 +246,16 @@ export function Utilities(): JSX.Element {
       set(computeState, val);
     }
   });
+  const onDupeFiles = useRecoilCallback(({ set }) => (val: FTONData) => {
+    if (Type.isArrayOf(val, Type.isSetOfString)) {
+      const dupeFiles: Map<string, string[]> = new Map();
+      for (const set of val) {
+        const arr = [...set];
+        dupeFiles.set(arr[0], arr);
+      }
+      set(dupeFilesState, dupeFiles);
+    }
+  });
   useEffect(InitialWireUp);
   useEffect(() => {
     const key = Subscribe('main-process-status', (val: FTONData) => {
@@ -258,10 +268,12 @@ export function Utilities(): JSX.Element {
     });
     const folderSizeKey = Subscribe('folder-size', onFolderSize);
     const setStateKey = Subscribe('compute-state', onStateUpdate);
+    const setDupesKey = Subscribe('dupe-files', onDupeFiles);
     return () => {
       Unsubscribe(key);
       Unsubscribe(folderSizeKey);
       Unsubscribe(setStateKey);
+      Unsubscribe(setDupesKey);
     };
   });
   /*

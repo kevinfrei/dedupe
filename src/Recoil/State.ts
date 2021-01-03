@@ -16,3 +16,8 @@ export const computeState = atom<string>({
   key: 'compute-state',
   default: '',
 });
+
+export const dupeFilesState = atom<Map<string, string[]>>({
+  key: 'dupe-files',
+  default: new Map(),
+});
