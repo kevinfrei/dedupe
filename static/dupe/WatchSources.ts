@@ -69,3 +69,7 @@ export async function WaitForSources(): Promise<void> {
     }
   }
 }
+
+export function GetFileSizes(): Map<string, Map<string, number>> {
+  return completedScanning;
+}

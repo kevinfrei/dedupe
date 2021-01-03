@@ -2,7 +2,8 @@ import { MakeError } from '@freik/core-utils';
 import { promises as fsp } from 'fs';
 import path from 'path';
 import { asyncSend } from '../main/Communication';
-import { WaitForSources } from './WatchSources';
+import { getHashes } from './Hashing';
+import { GetFileSizes, WaitForSources } from './WatchSources';
 
 const err = MakeError('Scanner-err');
 
@@ -63,4 +64,33 @@ export async function getSizes(
 export async function startScan(): Promise<void> {
   await WaitForSources();
   asyncSend({ 'compute-state': 'Looking for duplicate files' });
+  const allFiles = GetFileSizes();
+  const sizes: Map<number, Set<string>> = new Map();
+  for (const aMap of allFiles.values()) {
+    for (const [file, size] of aMap) {
+      let theSet = sizes.get(size);
+      if (!theSet) {
+        sizes.set(size, new Set([file]));
+      } else {
+        theSet.add(file);
+      }
+    }
+  }
+  const uniqueFileSizes = sizes.size;
+  asyncSend({ 'compute-state': `${uniqueFileSizes} unique file sizes found` });
+  let removed = 0;
+  for (const val of [...sizes.keys()]) {
+    if (sizes.get(val) && sizes.get(val)!.size === 1) {
+      sizes.delete(val);
+      removed++;
+    }
+  }
+  const dupFileSizes = sizes.size;
+  asyncSend({ 'compute-state': `${uniqueFileSizes} down to ${dupFileSizes}` });
+  if (uniqueFileSizes - removed !== dupFileSizes) {
+    asyncSend({
+      'compute-state': `${uniqueFileSizes} !== ${dupFileSizes} + ${removed}`,
+    });
+  }
+  const hashes = await getHashes(sizes);
 }
