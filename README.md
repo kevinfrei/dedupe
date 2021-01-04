@@ -2,21 +2,19 @@
 
 Cross-platform file deduplication utility
 
-## Evil plans
+It works, it's just clunkier than I'd like, now.
 
-I already built one of these 10+ years ago in XAML in C# on Windows 7, so
-starting there seems reasonable.
-
-- UI to select folders
-  - Should support 'reordering' to prioritize some folders above others
-- Rapid scan: Just find files of the same size
-- Second scan: Just the first X kb of a file to see if they _might_ be the same
-- Final scan: Crypto-hash each file, I think.
-- Display UI to remove/flip around file duplicates
+(`yarn` then `yarn start` it, if you're here and wondering if you can use it)
 
 I'm to the 'UI to remove files' part, and here are some features I should add in
 the future:
 
+- Make the thing look "better" (maybe switch to a DetailList?)
 - Ignore these types/Only check these types list(s)
 - Results filtering: Size, type, location?
 - Show file size discovery progress
+- Show file duplication before it's all done
+  - Because the process is driven by file sizes, it's safe to do so before
+    everything has completed
+  - To do this properly, deletion state needs to update the main-process data
+    structures, which would help a few other parts of the system anyway...

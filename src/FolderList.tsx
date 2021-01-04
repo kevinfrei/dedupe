@@ -1,10 +1,4 @@
-import {
-  Checkbox,
-  IconButton,
-  Label,
-  PrimaryButton,
-  Stack,
-} from '@fluentui/react';
+import { IconButton, Label, PrimaryButton, Stack } from '@fluentui/react';
 import { CSSProperties } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import './App.css';
@@ -22,9 +16,6 @@ export function FolderPicker(): JSX.Element {
   return (
     <div style={style}>
       <FolderList />
-      <div style={{ margin: 10 }}>
-        <Checkbox label="Do quick 'check' pass before full file hashing" />
-      </div>
       <PrimaryButton
         text="Start Scanning"
         disabled={folders.length === 0 || curState !== ''}
