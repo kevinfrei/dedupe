@@ -1,6 +1,6 @@
 import { FTON, MakeError, MakeLogger, Type } from '@freik/core-utils';
 import { shell } from 'electron';
-import trash from 'trash';
+import { promises as fsp } from 'fs';
 
 const log = MakeLogger('Messages', true);
 const err = MakeError('Messages-err');
@@ -35,9 +35,18 @@ export async function trashFile(flattenedPaths?: string): Promise<void> {
     return;
   }
   try {
-    if (Type.isString(data) || Type.isArrayOfString(data)) {
+    if (Type.isString(data)) {
       // TODO: Update the file list when the file has been deleted!
-      await trash(data, { glob: false });
+      await fsp.unlink(data);
+      log('deleted files:');
+      log(data);
+      return;
+    }
+    if (Type.isArrayOfString(data)) {
+      // TODO: Update the file list when the file has been deleted!
+      for (const file of data) {
+        await fsp.unlink(file);
+      }
       log('deleted files:');
       log(data);
       return;
