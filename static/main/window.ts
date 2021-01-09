@@ -57,7 +57,7 @@ export function CreateWindow(windowCreated: OnWindowCreated): void {
   mainWindow
     .loadURL(
       isDev
-        ? 'http://localhost:3000'
+        ? 'http://localhost:' + process.env.PORT
         : // If this file moves, you have to fix this to make it work for release
           `file://${path.join(__dirname, '../index.html')}`,
     )
