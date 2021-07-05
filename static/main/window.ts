@@ -1,13 +1,13 @@
-import { MakeError } from '@freik/core-utils';
-import { BrowserWindow } from 'electron';
+import { DebouncedEvery, MakeError } from '@freik/core-utils';
+import { BrowserWindow, dialog } from 'electron';
 import isDev from 'electron-is-dev';
+import { OpenDialogOptions } from 'electron/main';
 import * as path from 'path';
-import { configureListeners, configureProtocols } from './conf-protocols';
 import { OnWindowCreated } from './electronSetup';
 import {
-  getBrowserWindowPos,
-  getWindowPos,
-  setWindowPos,
+  GetBrowserWindowPos,
+  LoadWindowPos,
+  SaveWindowPos,
   WindowPosition,
 } from './persist';
 
@@ -31,77 +31,96 @@ export function SendToMain(channel: string, ...data: any[]): void {
   }
 }
 
-const windowPos: WindowPosition = getWindowPos();
+const windowPos: WindowPosition = LoadWindowPos();
 
-export function CreateWindow(windowCreated: OnWindowCreated): void {
-  configureProtocols();
-  configureListeners();
+// This will get called after a 1 second delay (and subsequent callers will
+// not be registered if one is waiting) to not be so aggressive about saving
+// the window position to disk
+const windowPosUpdated = DebouncedEvery(() => {
+  // Get the window state & save it
+  if (mainWindow) {
+    windowPos.isMaximized = mainWindow.isMaximized();
+    if (!windowPos.isMaximized) {
+      // only update bounds if the window isn’t currently maximized
+      windowPos.bounds = mainWindow.getBounds();
+    }
+    SaveWindowPos(windowPos);
+  }
+}, 1000);
+
+export async function CreateWindow(
+  windowCreated: OnWindowCreated,
+): Promise<void> {
+  /* 
+  await RegisterProtocols();
+  RegisterListeners();
+  */
   // Create the window, but don't show it just yet
   mainWindow = new BrowserWindow({
-    ...getBrowserWindowPos(windowPos),
-    title: 'File Deduplicator',
+    ...GetBrowserWindowPos(windowPos),
+    title: 'EMP: Electron Music Player',
     // backgroundColor: '#282c34', // Unnecessary if you're not showing :)
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       enableRemoteModule: true,
       webSecurity: !isDev,
+      contextIsolation: false,
     },
-    frame: true,
     show: false,
-    minWidth: 300,
-    minHeight: 300,
-  });
+    minWidth: 270,
+    minHeight: 308,
+    /*
+    This exposes a bug in Electron where it won't quit/close. I should report it
+    roundedCorners: false, // Square corners? Not sure...
+    */
+  })
+    .on('closed', () => {
+      // Clear the reference to the window object.
+      // Usually you would store windows in an array.
+      // If your app supports multiple windows, this is the time when you should
+      // delete the corresponding element.
+      mainWindow = null;
+    })
+    .on('ready-to-show', () => {
+      // Wait to show the main window until it's actually ready...
+      if (mainWindow) {
+        mainWindow.show();
+        mainWindow.focus();
+        // TODO: On Mac, there's 'full screen max' and then 'just big'
+        // This code makes full screen max turn into just big
+        if (windowPos.isMaximized) {
+          mainWindow.maximize();
+        }
+        // Call the user specified "ready to go" function
+        windowCreated().catch(err);
+      }
+    })
+    // Save the window position when it's changed:
+    .on('resize', windowPosUpdated)
+    .on('move', windowPosUpdated);
 
   // Load the base URL
-  mainWindow
-    .loadURL(
-      isDev
-        ? 'http://localhost:3000'
-        : // If this file moves, you have to fix this to make it work for release
-          `file://${path.join(__dirname, '../index.html')}`,
-    )
-    .catch(err);
+  await mainWindow.loadURL(
+    isDev
+      ? 'http://localhost:3000'
+      : // If this file moves, you have to fix this to make it work for release
+        `file://${path.join(__dirname, '../index.html')}`,
+  );
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
+}
 
-  mainWindow.on('closed', () => {
-    // Clear the reference to the window object.
-    // Usually you would store windows in an array.
-    // If your app supports multiple windows, this is the time when you should
-    // delete the corresponding element.
-    mainWindow = null;
-  });
-
-  // Wait to show the main window until it's actually ready...
-  mainWindow.on('ready-to-show', () => {
-    if (mainWindow) {
-      mainWindow.show();
-      mainWindow.focus();
-      // TODO: On Mac, there's 'full screen max' and then 'just big'
-      // This code makes full screen max turn into just big
-      if (windowPos.isMaximized) {
-        mainWindow.maximize();
-      }
-      // Call the user specified "ready to go" function
-      windowCreated().catch(err);
-    }
-  });
-
-  const updateWindowPos = () => {
-    // Get the window state & save it
-    if (mainWindow) {
-      windowPos.isMaximized = mainWindow.isMaximized();
-      if (!windowPos.isMaximized) {
-        // only update bounds if the window isn’t currently maximized
-        windowPos.bounds = mainWindow.getBounds();
-      }
-      setWindowPos(windowPos);
-    }
-  };
-
-  mainWindow.on('resize', updateWindowPos);
-  mainWindow.on('move', updateWindowPos);
-  mainWindow.on('close', updateWindowPos);
+export async function ShowOpenDialog(
+  options: OpenDialogOptions,
+): Promise<string[] | void> {
+  if (!mainWindow) {
+    return;
+  }
+  const res = await dialog.showOpenDialog(mainWindow, options);
+  if (res.canceled) {
+    return;
+  }
+  return res.filePaths;
 }

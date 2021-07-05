@@ -1,10 +1,10 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
-import { asyncSend } from '../main/Communication';
+import { AsyncSend } from '../main/Communication';
 
 function hashFile(filename: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    let shasum = createHash('sha1');
+    const shasum = createHash('sha1');
     try {
       let s = fs.createReadStream(filename);
       s.on('data', function (data) {
@@ -65,7 +65,7 @@ function updateProgress(
   const pc2 = Math.round((p2 / t2) * 100);
   if (now - time > 250 || doit) {
     time = now;
-    asyncSend({
+    AsyncSend({
       'compute-state': `${finalHashes.size} (${countItems(
         finalHashes,
       )}) duplicate files found. ${pc1}% files, ${pc2}% bytes (${toBytes(

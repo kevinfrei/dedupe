@@ -1,6 +1,6 @@
 import { IconButton, Label, PrimaryButton, Stack } from '@fluentui/react';
 import { CSSProperties } from 'react';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil';
 import './App.css';
 import { InvokeMain, ShowOpenDialog } from './MyWindow';
 import {
@@ -52,13 +52,19 @@ function moveDown(folders: string[], index: number): string[] {
   return newArray;
 }
 
-function GetDirs(): string[] | void {
+async function GetDirs(): Promise<string[] | void> {
   return ShowOpenDialog({ properties: ['openDirectory'] });
 }
 
 export function FolderList(): JSX.Element {
   const [folders, setFolders] = useRecoilState(foldersToScanState);
   const curState = useRecoilValue(computeState);
+  const onAddFolderClick = useRecoilCallback(({ set }) => async () => {
+    const locs = await GetDirs();
+    if (locs) {
+      set(foldersToScanState, (prv) => [...prv, ...locs]);
+    }
+  });
   const theList =
     folders.length === 0 ? (
       <Label>&nbsp;Please add a folder</Label>
@@ -90,12 +96,7 @@ export function FolderList(): JSX.Element {
       {theList}
       <PrimaryButton
         text="Add a folder"
-        onClick={() => {
-          const locs = GetDirs();
-          if (locs) {
-            setFolders([...folders, ...locs]);
-          }
-        }}
+        onClick={onAddFolderClick}
         disabled={curState !== ''}
       />
     </div>

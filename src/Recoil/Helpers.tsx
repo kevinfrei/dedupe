@@ -1,4 +1,10 @@
-import { FTON, FTONData, MakeError, MakeLogger, Type } from '@freik/core-utils';
+import {
+  MakeError,
+  MakeLogger,
+  Pickle,
+  Type,
+  Unpickle,
+} from '@freik/core-utils';
 import { Suspense, useEffect, useState } from 'react';
 import {
   AtomEffect,
@@ -108,20 +114,16 @@ export function translateToMainEffect<T>(
 
 /**
  * An Atom effect to acquire the value from main, and save it back when
- * modified, after processing it from the original type to FTON (JSON).
+ * modified, after processing it from the original type to JSON using Pickling.
  *
- * @param {(val: T) => FTONData} toFton
- * The function to convert T to FTON data
- * @param {(val: FTONData) => T | void} fromFton
- * The funciton to convert FTON data to T or void if it's malformed
  * @param {boolean} asyncUpdates
  * Optionally true if you also need to actively respond to server changes
  *
  * @returns an AtomEffect<T>
  */
 export function bidirectionalSyncWithTranslateEffect<T>(
-  toFton: (val: T) => FTONData,
-  fromFton: (val: FTONData) => T | void,
+  toPickleable: (val: T) => unknown,
+  fromUnpickled: (val: unknown) => T | void,
   asyncUpdates?: boolean,
 ): AtomEffect<T> {
   return ({
@@ -138,7 +140,7 @@ export function bidirectionalSyncWithTranslateEffect<T>(
           if (value) {
             log(value);
             log('***');
-            const data = fromFton(FTON.parse(value));
+            const data = fromUnpickled(Unpickle(value));
             log(data);
             if (data) {
               log(`Setting Self for ${node.key}`);
@@ -146,15 +148,12 @@ export function bidirectionalSyncWithTranslateEffect<T>(
             }
           }
         })
-        .catch((rej) => {
-          err(`${node.key} Get failed in bidirectional sync`);
-          err(rej);
-        });
+        .catch(onRejected(`${node.key} Get failed in bidirectional sync`));
     }
     let lKey: ListenKey | null = null;
     if (asyncUpdates) {
-      lKey = Subscribe(node.key, (val: FTONData) => {
-        const theRightType = fromFton(val);
+      lKey = Subscribe(node.key, (val: unknown) => {
+        const theRightType = fromUnpickled(val);
         if (theRightType) {
           log(`Async data for ${node.key}:`);
           log(theRightType);
@@ -169,15 +168,15 @@ export function bidirectionalSyncWithTranslateEffect<T>(
       if (newVal instanceof DefaultValue) {
         return;
       }
-      const newFton = toFton(newVal);
+      const newPickled = Pickle(toPickleable(newVal));
       if (
         oldVal instanceof DefaultValue ||
-        !FTON.valEqual(toFton(oldVal), newFton)
+        Pickle(toPickleable(oldVal)) !== newPickled
       ) {
         log(`Saving ${node.key} back to server...`);
-        WriteToStorage(node.key, FTON.stringify(newFton))
+        WriteToStorage(node.key, newPickled)
           .then(() => log(`${node.key} saved properly`))
-          .catch((reason) => err(`${node.key} save to main failed`));
+          .catch(onRejected(`${node.key} save to main failed`));
       }
     });
 
@@ -194,8 +193,8 @@ export function bidirectionalSyncWithTranslateEffect<T>(
 
 export function syncWithMainEffect<T>(asyncUpdates?: boolean): AtomEffect<T> {
   return bidirectionalSyncWithTranslateEffect<T>(
-    (a) => a as unknown as FTONData,
-    (b) => b as unknown as T,
+    (a) => a as unknown,
+    (a) => a as T,
     asyncUpdates,
   );
 }
@@ -230,7 +229,8 @@ export function getAtomValuesEffect(): void {
 // This is a react component to enable the IPC subsystem to talk to the store,
 // keep track of which mode we're in, and generally deal with "global" silliness
 export function Utilities(): JSX.Element {
-  const onFolderSize = useRecoilCallback(({ set }) => (val: FTONData) => {
+  useEffect(InitialWireUp);
+  const onFolderSize = useRecoilCallback(({ set }) => (val: unknown) => {
     log('Got folder-size message:');
     log(val);
     if (
@@ -241,19 +241,18 @@ export function Utilities(): JSX.Element {
       set(folderFileCountFamily(val.name), val.size);
     }
   });
-  const onStateUpdate = useRecoilCallback(({ set }) => (val: FTONData) => {
+  const onStateUpdate = useRecoilCallback(({ set }) => (val: unknown) => {
     if (Type.isString(val)) {
       set(computeState, val);
     }
   });
-  const onDupeFiles = useRecoilCallback(({ set }) => (val: FTONData) => {
+  const onDupeFiles = useRecoilCallback(({ set }) => (val: unknown) => {
     if (Type.isMapOf(val, Type.isString, Type.isSetOfString)) {
       set(dupeFilesState, val);
     }
   });
-  useEffect(InitialWireUp);
   useEffect(() => {
-    const key = Subscribe('main-process-status', (val: FTONData) => {
+    const key = Subscribe('main-process-status', (val: unknown) => {
       if (Type.isString(val)) {
         log(`Main status: ${val}`);
       } else {
@@ -299,4 +298,14 @@ export function Spinner({ children, label }: SpinnerProps): JSX.Element {
     </div>
   );
   return <Suspense fallback={theSpinner}>{children}</Suspense>;
+}
+
+// eslint-disable-next-line
+function onRejected(msg?: string): (reason: any) => void {
+  return (reason: any) => {
+    if (Type.isString(msg)) {
+      err(msg);
+    }
+    err(reason);
+  };
 }

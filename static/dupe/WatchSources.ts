@@ -1,6 +1,6 @@
 import { FTON, MakeError, MakeLogger, Type } from '@freik/core-utils';
-import { asyncSend } from '../main/Communication';
-import * as persist from '../main/persist';
+import { AsyncSend } from '../main/Communication';
+import { Persistence } from '../main/persist';
 import { clearAbort, getSizes, requestAbort } from './Scanner';
 
 const log = MakeLogger('WatchSources', true);
@@ -37,7 +37,7 @@ export function WatchSources(foldersFTON: string): boolean {
             if (val) {
               completedScanning.set(fldr, val);
               // Send data back to render
-              asyncSend({ 'folder-size': { name: fldr, size: val.size } });
+              AsyncSend({ 'folder-size': { name: fldr, size: val.size } });
             }
           })
           .catch((reason) => {
@@ -66,11 +66,11 @@ function countItems<T, U, V>(map: Map<T, Map<U, V>>): number {
 }
 
 export async function WaitForSources(): Promise<void> {
-  const folders = await persist.getItemAsync('folders');
+  const folders = await Persistence.getItemAsync('folders');
   if (Type.isString(folders)) {
     while (!WatchSources(folders)) {
       await wait(500);
-      asyncSend({
+      AsyncSend({
         'compute-state': `Looking for same-sized files ${countItems(
           completedScanning,
         )}`,
@@ -78,7 +78,7 @@ export async function WaitForSources(): Promise<void> {
     }
     // Now, just to make sure, send the folder-size commands
     for (const [key, val] of completedScanning) {
-      asyncSend({ 'folder-size': { name: key, size: val.size } });
+      AsyncSend({ 'folder-size': { name: key, size: val.size } });
     }
   }
 }
