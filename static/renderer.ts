@@ -4,8 +4,7 @@
 
 import { MakeError } from '@freik/core-utils';
 import { IpcRenderer, ipcRenderer } from 'electron';
-// import isDev from 'electron-is-dev';
-const isDev = true;
+import isDev from 'electron-is-dev';
 
 const err = MakeError('renderer-err');
 
