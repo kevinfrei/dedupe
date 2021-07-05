@@ -194,8 +194,8 @@ export function bidirectionalSyncWithTranslateEffect<T>(
 
 export function syncWithMainEffect<T>(asyncUpdates?: boolean): AtomEffect<T> {
   return bidirectionalSyncWithTranslateEffect<T>(
-    (a) => (a as unknown) as FTONData,
-    (b) => (b as unknown) as T,
+    (a) => a as unknown as FTONData,
+    (b) => b as unknown as T,
     asyncUpdates,
   );
 }

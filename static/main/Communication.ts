@@ -77,7 +77,7 @@ export function registerFlattened<T>(key: string, handleIt: Handler<T>): void {
         const res = await handleIt(arg);
         log(res);
         if (res) {
-          return FTON.stringify((res as unknown) as FTONData);
+          return FTON.stringify(res as unknown as FTONData);
         }
       } else {
         err(`Bad (flattened) type for argument to ${key}: ${typeof arg}`);
