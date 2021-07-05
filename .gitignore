@@ -22,6 +22,7 @@
 /public/main
 /public/**/*.js
 /**/*.js.map
+/public/dupe
 
 # misc
 .DS_Store
