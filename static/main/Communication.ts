@@ -1,6 +1,7 @@
 import { MakeError, MakeLogger, Type } from '@freik/core-utils';
 import { ipcMain, OpenDialogOptions } from 'electron';
 import { IpcMainInvokeEvent } from 'electron/main';
+import { startScan } from '../dupe/Scanner';
 import { showFile, trashFile } from './Messages';
 import { Persistence } from './persist';
 import { SendToMain, ShowOpenDialog } from './window';
@@ -119,6 +120,7 @@ export function CommsSetup(): void {
 
   // "complex" API's (not just save/restore data to the persist cache)
   registerChannel('trash-file', trashFile, Type.isString);
+  registerChannel('start-scan', startScan, (a: unknown): a is void => true);
 
   // Reviewed & working properly:
   registerChannel('show-file', showFile, Type.isString);

@@ -252,19 +252,10 @@ export function Utilities(): JSX.Element {
     }
   });
   useEffect(() => {
-    const key = Subscribe('main-process-status', (val: unknown) => {
-      if (Type.isString(val)) {
-        log(`Main status: ${val}`);
-      } else {
-        err('Invalid value in main-process-status:');
-        err(val);
-      }
-    });
     const folderSizeKey = Subscribe('folder-size', onFolderSize);
     const setStateKey = Subscribe('compute-state', onStateUpdate);
     const setDupesKey = Subscribe('dupe-files', onDupeFiles);
     return () => {
-      Unsubscribe(key);
       Unsubscribe(folderSizeKey);
       Unsubscribe(setStateKey);
       Unsubscribe(setDupesKey);
