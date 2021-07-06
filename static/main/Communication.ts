@@ -1,28 +1,27 @@
-import { FTON, FTONData, MakeError, MakeLogger } from '@freik/core-utils';
-import { ipcMain } from 'electron';
+import { MakeError, MakeLogger, Type } from '@freik/core-utils';
+import { ipcMain, OpenDialogOptions } from 'electron';
 import { IpcMainInvokeEvent } from 'electron/main';
-import { startScan } from '../dupe/Scanner';
 import { showFile, trashFile } from './Messages';
-import * as persist from './persist';
-import { SendToMain } from './window';
+import { Persistence } from './persist';
+import { SendToMain, ShowOpenDialog } from './window';
 
 const log = MakeLogger('Communication');
 const err = MakeError('Communication-err');
 
-export type Handler<T> = (arg?: string) => Promise<T | void>;
+type Handler<R, T> = (arg: T) => Promise<R | void>;
 
 /**
  * Read a value from persistence by name, returning it's unprocessed contents
  *
  * @async @function
- * @param {string=} name - the name of the value to read
+ * @param {string} name - the name of the value to read
  * @return {Promise<string>} The raw string contents of the value
  */
-export async function readFromStorage(name?: string): Promise<string> {
+async function readFromStorage(name?: string): Promise<string> {
   if (!name) return '';
   try {
     log(`readFromStorage(${name})`);
-    const value = await persist.getItemAsync(name);
+    const value = await Persistence.getItemAsync(name);
     log(`Sending ${name} response:`);
     log(value);
     return value || '';
@@ -39,71 +38,42 @@ export async function readFromStorage(name?: string): Promise<string> {
  * @async @function
  * @param {string?} keyValuePair - The key:value string to write
  */
-export async function writeToStorage(keyValuePair?: string): Promise<void> {
-  if (!keyValuePair) return;
+async function writeToStorage([key, value]: [string, string]): Promise<void> {
   try {
     // First, split off the key name:
-    const pos = keyValuePair.indexOf(':');
-    const name = keyValuePair.substring(0, pos);
-    const value = keyValuePair.substring(pos + 1);
-    log(`writeToStorage(${name} : ${value})`);
+    log(`writeToStorage(${key} : ${value})`);
     // Push the data into the persistence system
-    await persist.setItemAsync(name, value);
-    log(`writeToStorage(${name}...) completed`);
+    await Persistence.setItemAsync(key, value);
+    log(`writeToStorage(${key}...) completed`);
   } catch (e) {
-    err(`error from writeToStorage(${keyValuePair})`);
+    err(`error from writeToStorage([${key}, ${value}])`);
     err(e);
   }
 }
 
 /**
- * Registers with `ipcMain.handle` a function that takes an optional string
- * (from the query) and returns UNFLATTENED data, which will then be returned
- * using the Flat Type Object Notation stingifier
- *
- * @function
- * @param {string} key - the name of the "channel" to respond to
- * @param {Handler<T>} handleIt - the function that takes a string and returns
- *  the corresponding object value for the channel
- * @returns {void}
- */
-export function registerFlattened<T>(key: string, handleIt: Handler<T>): void {
-  ipcMain.handle(
-    key,
-    async (event: IpcMainInvokeEvent, arg?: any): Promise<string | void> => {
-      if (typeof arg === 'string' || !arg) {
-        log('arg: ');
-        log(arg);
-        const res = await handleIt(arg);
-        log(res);
-        if (res) {
-          return FTON.stringify((res as unknown) as FTONData);
-        }
-      } else {
-        err(`Bad (flattened) type for argument to ${key}: ${typeof arg}`);
-      }
-    },
-  );
-}
-
-/**
- * Registers with `ipcMain.handle` a function that takes an optional string
- * (from the query) and returns *string* data, which is returned, untouched
- *
- * @function
- * @param {string} key - the name of the "channel" to respond to
- * @param {Handler<string>} handleIt - the function that takes a string and
- *   returns a string
+ * Registers with `ipcMain.handle` a function that takes a mandatory parameter
+ * and returns *string* data untouched. It also requires a checker to ensure the
+ * data is properly typed
+ * @param  {string} key - The id to register a listener for
+ * @param  {TypeHandler<T>} handler - the function that handles the data
+ * @param  {(v:any)=>v is T} checker - a Type Check function for type T
  * @returns void
  */
-export function register(key: string, handleIt: Handler<string>): void {
+function registerChannel<R, T>(
+  key: string,
+  handler: Handler<R, T>,
+  checker: (v: any) => v is T,
+): void {
   ipcMain.handle(
     key,
-    async (event: IpcMainInvokeEvent, arg: any): Promise<string | void> => {
-      if (typeof arg === 'string') {
-        return await handleIt(arg);
+    async (_event: IpcMainInvokeEvent, arg: any): Promise<R | void> => {
+      if (checker(arg)) {
+        log(`Received ${key} message: handling`);
+        return await handler(arg);
       } else {
-        err(`Bad (flattened) type for argument to ${key}: ${typeof arg}`);
+        err(`Invalid argument type to ${key} handler`);
+        err(arg);
       }
     },
   );
@@ -112,24 +82,45 @@ export function register(key: string, handleIt: Handler<string>): void {
 /**
  * Send a message to the rendering process
  *
- * @param  {FTONData} message
+ * @param  {unknown} message
  * The (flattenable) message to send.
  */
-export function asyncSend(message: FTONData): void {
+export function AsyncSend(message: unknown): void {
   SendToMain('async-data', { message });
+}
+
+function isKeyValue(obj: any): obj is [string, string] {
+  return Type.is2TupleOf(obj, Type.isString, Type.isString);
+}
+
+function isOpenDialogOptions(obj: any): obj is OpenDialogOptions {
+  /* {
+    title?: string;
+    defaultPath?: string;
+    buttonLabel?: string;
+    filters?: FileFilter[];
+    properties?: Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles' | 'createDirectory' | 'promptToCreate' | 'noResolveAliases' | 'treatPackageAsDirectory' | 'dontAddToRecent'>;
+    message?: string;
+    securityScopedBookmarks?: boolean;
+  }*/
+  // TODO: Check that stuff ^^^^
+  return true;
 }
 
 /**
  * Setup any async listeners, plus register all the "invoke" handlers
  */
 export function CommsSetup(): void {
-  // "complex" API's (not just save/restore data to the persist cache)
-  registerFlattened('show-file', showFile);
-  registerFlattened('start-scan', startScan);
-  registerFlattened('trash-file', trashFile);
-
   // These are the general "just asking for something to read/written to disk"
-  // functions.
-  register('read-from-storage', readFromStorage);
-  register('write-to-storage', writeToStorage);
+  // functions. Media Info, Search, and MusicDB stuff needs a different handler
+  // because they don't just read/write to disk.
+  registerChannel('read-from-storage', readFromStorage, Type.isString);
+  registerChannel('write-to-storage', writeToStorage, isKeyValue);
+
+  // "complex" API's (not just save/restore data to the persist cache)
+  registerChannel('trash-file', trashFile, Type.isString);
+
+  // Reviewed & working properly:
+  registerChannel('show-file', showFile, Type.isString);
+  registerChannel('show-open-dialog', ShowOpenDialog, isOpenDialogOptions);
 }

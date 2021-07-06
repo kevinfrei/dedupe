@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "sourceMap": true,
+    "outDir": "../public",
+    "incremental": true,
+    "allowJs": true,
+    "tsBuildInfoFile": "../.tsrender.tsbuildinfo",
+    "isolatedModules": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["../static/renderer.ts"]
+}

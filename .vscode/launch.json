@@ -25,11 +25,7 @@
         "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
       },
       "program": "${workspaceFolder}/public/electron.js",
-      "runtimeArgs": [
-        ".",
-        "--enable-logging",
-        "--remote-debugging-port=9223"
-      ],
+      "runtimeArgs": [".", "--enable-logging", "--remote-debugging-port=9223"],
       "outputCapture": "std",
       "preLaunchTask": "npm: prepare"
     },
@@ -55,10 +51,7 @@
   "compounds": [
     {
       "name": "Electron: All",
-      "configurations": [
-        "Electron: Main",
-        "Electron: Render"
-      ]
+      "configurations": ["Electron: Main", "Electron: Render"]
     }
   ]
 }

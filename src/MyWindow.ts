@@ -1,5 +1,5 @@
 // This is for getting at "global" stuff from the window object
-import { FTON, MakeError, MakeLogger, Type } from '@freik/core-utils';
+import { MakeError, MakeLogger, Type } from '@freik/core-utils';
 import { IpcRenderer } from 'electron';
 import { IpcRendererEvent, OpenDialogSyncOptions } from 'electron/main';
 import { HandleMessage } from './ipc';
@@ -12,23 +12,26 @@ const err = MakeError('MyWindow-err');
  */
 
 interface MyWindow extends Window {
-  ipc: IpcRenderer | undefined;
-  remote: Electron.Remote | undefined;
-  isDev: boolean | undefined;
-  initApp: undefined | (() => void);
-  ipcSet: boolean | undefined;
+  ipc?: IpcRenderer;
+  isDev: boolean;
+  initApp?: () => void;
+  ipcSet?: boolean;
 }
 
 declare let window: MyWindow;
 
-export function ShowOpenDialog(
+export async function ShowOpenDialog(
   options: OpenDialogSyncOptions,
-): string[] | undefined {
-  return window.remote!.dialog.showOpenDialogSync(options);
+): Promise<string[] | void> {
+  return await CallMain('show-open-dialog', options, Type.isArrayOfString);
 }
 
 export function SetInit(func: () => void): void {
   window.initApp = func;
+}
+
+export function IsDev(): boolean {
+  return window.isDev === true;
 }
 
 export function InitialWireUp(): void {
@@ -37,13 +40,11 @@ export function InitialWireUp(): void {
 
     // Set up listeners for any messages that we might want to asynchronously
     // send from the main process
-    window.ipc?.on('async-data', (event: IpcRendererEvent, data: unknown) => {
+    window.ipc?.on('async-data', (_event: IpcRendererEvent, data: unknown) => {
       if (
-        FTON.isFTON(data) &&
         Type.isArray(data) &&
         Type.isObject(data[0]) &&
-        Type.has(data[0], 'message') &&
-        FTON.isFTON(data[0].message)
+        Type.has(data[0], 'message')
       ) {
         log('*** Async message formed properly:');
         log(data[0]);
@@ -76,20 +77,52 @@ export function UnsubscribeMediaMatcher(
   mediaQuery?.removeEventListener('change', handler);
 }
 
-export async function InvokeMain(
+export async function InvokeMain<T>(
   channel: string,
-  key?: string,
-): Promise<string | void> {
+  key?: T,
+): Promise<unknown | void> {
   let result;
   if (key) {
-    log(`Invoking main("${channel}", "${key}")`);
-    result = (await window.ipc!.invoke(channel, key)) as string;
-    log(`Invoke main ("${channel}" "${key}") returned:`);
+    log(`Invoking main("${channel}", "...")`);
+    result = (await window.ipc!.invoke(channel, key)) as unknown;
+    log(`Invoke main ("${channel}" "...") returned:`);
   } else {
     log(`Invoking main("${channel}")`);
-    result = (await window.ipc!.invoke(channel)) as string;
+    result = (await window.ipc!.invoke(channel)) as unknown;
     log(`Invoke main ("${channel}") returned:`);
   }
   log(result);
   return result;
+}
+
+export async function CallMain<R, T>(
+  channel: string,
+  key: T,
+  typecheck: (val: any) => val is R,
+): Promise<R | void> {
+  let result: any;
+  if (!Type.isUndefined(key)) {
+    log(`CallMain("${channel}", "...")`);
+    // eslint-disable-next-line
+    result = await window.ipc!.invoke(channel, key);
+    log(`CallMain ("${channel}" "...") returned:`);
+  } else {
+    log(`CallMain("${channel}")`);
+    // eslint-disable-next-line
+    result = await window.ipc!.invoke(channel);
+    log(`CallMain ("${channel}") returned:`);
+  }
+  log(result);
+  if (typecheck(result)) {
+    return result;
+  }
+  err(
+    `CallMain(${channel}, <T>, ${typecheck.name}(...)) result failed typecheck`,
+  );
+  err(result);
+}
+
+export async function PostMain<T>(channel: string, key: T): Promise<void> {
+  const isVoid = (a: any): a is void => true;
+  return await CallMain(channel, key, isVoid);
 }

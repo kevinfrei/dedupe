@@ -5,7 +5,7 @@ import { FolderPicker } from './FolderList';
 import { ComputeStateProgress } from './ProgressDlg';
 import { Utilities } from './Recoil/Helpers';
 
-export default function App() {
+export default function App(): JSX.Element {
   return (
     <RecoilRoot>
       <Utilities />

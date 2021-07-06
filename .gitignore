@@ -12,8 +12,10 @@
 # production
 /build
 /dist
-/public/**/*.js
-/public/**/*.js.map
+/public/main
+/public/dupe
+/public/*.js
+/public/*.js.map
 
 # misc
 .DS_Store
@@ -25,3 +27,4 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*

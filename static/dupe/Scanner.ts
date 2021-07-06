@@ -1,7 +1,7 @@
 import { MakeError } from '@freik/core-utils';
 import { promises as fsp } from 'fs';
 import path from 'path';
-import { asyncSend } from '../main/Communication';
+import { AsyncSend } from '../main/Communication';
 import { getHashes } from './Hashing';
 import { GetFileSizes, WaitForSources } from './WatchSources';
 
@@ -63,12 +63,12 @@ export async function getSizes(
 
 export async function startScan(): Promise<void> {
   await WaitForSources();
-  asyncSend({ 'compute-state': 'Looking for duplicate files' });
+  AsyncSend({ 'compute-state': 'Looking for duplicate files' });
   const allFiles = GetFileSizes();
   const sizes: Map<number, Set<string>> = new Map();
   for (const aMap of allFiles.values()) {
     for (const [file, size] of aMap) {
-      let theSet = sizes.get(size);
+      const theSet = sizes.get(size);
       if (!theSet) {
         sizes.set(size, new Set([file]));
       } else {
@@ -77,7 +77,7 @@ export async function startScan(): Promise<void> {
     }
   }
   const uniqueFileSizes = sizes.size;
-  asyncSend({ 'compute-state': `${uniqueFileSizes} unique file sizes found` });
+  AsyncSend({ 'compute-state': `${uniqueFileSizes} unique file sizes found` });
   let removed = 0;
   for (const val of [...sizes.keys()]) {
     if (sizes.get(val) && sizes.get(val)!.size === 1) {
@@ -86,14 +86,14 @@ export async function startScan(): Promise<void> {
     }
   }
   const dupFileSizes = sizes.size;
-  asyncSend({ 'compute-state': `${uniqueFileSizes} down to ${dupFileSizes}` });
+  AsyncSend({ 'compute-state': `${uniqueFileSizes} down to ${dupFileSizes}` });
   if (uniqueFileSizes - removed !== dupFileSizes) {
-    asyncSend({
+    AsyncSend({
       'compute-state': `${uniqueFileSizes} !== ${dupFileSizes} + ${removed}`,
     });
   }
   const hashes = await getHashes(sizes);
   // This keeps stuff disabled, but hides the modal dialog
-  asyncSend({ 'compute-state': ' ' });
-  asyncSend({ 'dupe-files': hashes });
+  AsyncSend({ 'compute-state': ' ' });
+  AsyncSend({ 'dupe-files': hashes });
 }

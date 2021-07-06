@@ -61,10 +61,12 @@ export function PickFileToDelete({
     return isPreferred(name) ? { fontWeight: 'bold' } : {};
   };
 
-  const onTrashClick = useRecoilCallback((cbInterface) => (name: string) => {
-    // TODO: Verify if you try to delete the preferred item...
-    RemoveFiles(cbInterface, name);
-  });
+  const onTrashClick = useRecoilCallback(
+    (cbInterface) => async (name: string) => {
+      // TODO: Verify if you try to delete the preferred item...
+      await RemoveFiles(cbInterface, name);
+    },
+  );
 
   return (
     <ul>
@@ -98,11 +100,11 @@ export function DupeDisplay(): JSX.Element {
       ))}
     </ul>
   );
-  const onRemoveAlts = useRecoilCallback((cbInterface) => () => {
+  const onRemoveAlts = useRecoilCallback((cbInterface) => async () => {
     for (const [, dupeFileSet] of dupeFiles) {
       const priList = makePriList(dupeFileSet, foldersToScan);
       if (priList.length && isOnlyPreferred(priList[0].name, priList)) {
-        RemoveFiles(
+        await RemoveFiles(
           cbInterface,
           priList.filter((v, i) => i !== 0).map((v) => v.name),
         );
