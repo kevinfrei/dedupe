@@ -1,12 +1,12 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@babel/core': ^7.14.5
-  '@babel/eslint-parser': ^7.14.5
+  '@babel/core': ^7.14.6
+  '@babel/eslint-parser': ^7.14.7
   '@babel/plugin-transform-react-jsx': ^7.14.5
-  '@fluentui/font-icons-mdl2': ^8.1.2
-  '@fluentui/react': ^8.18.0
-  '@fluentui/react-hooks': ^8.2.2
+  '@fluentui/font-icons-mdl2': ^8.1.4
+  '@fluentui/react': ^8.22.0
+  '@fluentui/react-hooks': ^8.2.3
   '@freik/build-tools': ^2.7.2
   '@freik/core-utils': ~0.27.3
   '@freik/node-utils': ~0.15.1
@@ -14,23 +14,23 @@ specifiers:
   '@testing-library/react': ^11.2.7
   '@types/electron-devtools-installer': ^2.2.0
   '@types/jest': ^26.0.23
-  '@types/node': ^15.12.2
-  '@types/react': ^17.0.11
-  '@types/react-dom': ^17.0.7
+  '@types/node': ^15.14.1
+  '@types/react': ^17.0.13
+  '@types/react-dom': ^17.0.8
   '@types/react-test-renderer': ^17.0.1
   '@types/xxhashjs': ^0.2.2
-  '@typescript-eslint/eslint-plugin': ^4.26.1
-  '@typescript-eslint/parser': ^4.26.1
+  '@typescript-eslint/eslint-plugin': ^4.28.2
+  '@typescript-eslint/parser': ^4.28.2
   cross-env: ^7.0.3
-  electron: ^13.1.2
+  electron: ^13.1.6
   electron-builder: ^22.11.7
   electron-devtools-installer: ^3.2.0
   electron-is-dev: ^2.0.0
   electron-react-devtools: ^0.5.3
-  eslint: ^7.28.0
+  eslint: ^7.30.0
   eslint-config-prettier: ^8.3.0
   eslint-config-react-app: ^6.0.0
-  eslint-plugin-flowtype: ^5.7.2
+  eslint-plugin-flowtype: ^5.8.0
   eslint-plugin-import: ^2.23.4
   eslint-plugin-jsx-a11y: ^6.4.1
   eslint-plugin-prettier: ^3.4.0
@@ -50,7 +50,7 @@ specifiers:
   rimraf: ^3.0.2
   svg-react-loader: ^0.4.6
   ts-jest: 26.5.6
-  typescript: ^4.3.2
+  typescript: ^4.3.5
   wait-on: ^5.3.0
   xxhashjs: ^0.2.2
 
@@ -84,7 +84,7 @@ devDependencies:
   '@typescript-eslint/eslint-plugin': 4.28.2_5031fffb45dfb7117e61c1d8ea1ef3ff
   '@typescript-eslint/parser': 4.28.2_eslint@7.30.0+typescript@4.3.5
   cross-env: 7.0.3
-  electron: 13.1.5
+  electron: 13.1.6
   electron-builder: 22.11.7
   electron-devtools-installer: 3.2.0
   electron-react-devtools: 0.5.3
@@ -3430,10 +3430,6 @@ packages:
     resolution: {integrity: sha512-cxWFQVseBm6O9Gbw1IWb8r6OS4OhSt3hPZLkFApLjM8TEXROBuQGLAH2i2gZpcXdLBIrpXuTDhH7Vbm1iXmNGA==}
     dev: true
 
-  /@types/json5/0.0.29:
-    resolution: {integrity: sha1-7ihweulOEdK4J7y+UnC86n8+ce4=}
-    dev: true
-
   /@types/minimatch/3.0.4:
     resolution: {integrity: sha512-1z8k4wzFnNjVK/tlxvrWuK5WMt6mydWWP7+zvH5eFep4oj+UkrfiJTRtjCeBXNpwaA/FYqqtb4/QS4ianFpIRA==}
     dev: true
@@ -4837,7 +4833,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001242
-      electron-to-chromium: 1.3.766
+      electron-to-chromium: 1.3.768
       escalade: 3.1.1
       node-releases: 1.1.73
     dev: true
@@ -4849,7 +4845,7 @@ packages:
     dependencies:
       caniuse-lite: 1.0.30001242
       colorette: 1.2.2
-      electron-to-chromium: 1.3.766
+      electron-to-chromium: 1.3.768
       escalade: 3.1.1
       node-releases: 1.1.73
     dev: true
@@ -6471,12 +6467,12 @@ packages:
     resolution: {integrity: sha1-x07bEkXcHP4TgLkwFs1OtYjtALc=}
     dev: true
 
-  /electron-to-chromium/1.3.766:
-    resolution: {integrity: sha512-u2quJ862q9reRKh/je3GXis3w38+RoXH1J9N3XjtsS6NzmUAosNsyZgUVFZPN/ZlJ3v6T0rTyZR3q/J5c6Sy5w==}
+  /electron-to-chromium/1.3.768:
+    resolution: {integrity: sha512-I4UMZHhVSK2pwt8jOIxTi3GIuc41NkddtKT/hpuxp9GO5UWJgDKTBa4TACppbVAuKtKbMK6BhQZvT5tFF1bcNA==}
     dev: true
 
-  /electron/13.1.5:
-    resolution: {integrity: sha512-ZoMCcPQNs/zO/Zdb5hq5H+rwRaKrdI3/sfXEwBVMx7f5jwa9jPQB3dZ2+7t59uD9VcFAWsH/pozr8nPPlv0tyw==}
+  /electron/13.1.6:
+    resolution: {integrity: sha512-XiB55/JTaQpDFQrD9pulYnOGwaWeMyRIub5ispvoE2bWBvM5zVMLptwMLb0m3KTMrfSkzhedZvOu7fwYvR7L7Q==}
     engines: {node: '>= 8.6'}
     hasBin: true
     requiresBuild: true
@@ -6806,7 +6802,7 @@ packages:
       pkg-up: 2.0.0
       read-pkg-up: 3.0.0
       resolve: 1.20.0
-      tsconfig-paths: 3.9.0
+      tsconfig-paths: 3.10.0
     dev: true
 
   /eslint-plugin-jest/24.3.6_bbfe94bdc32beb9697419a1eeb1a03aa:
@@ -13805,11 +13801,10 @@ packages:
       typescript: 4.3.5
     dev: true
 
-  /tsconfig-paths/3.9.0:
-    resolution: {integrity: sha512-dRcuzokWhajtZWkQsDVKbWyY+jgcLC5sqJhg2PSgf4ZkH2aHPvaOY8YWGhmjb68b5qqTfasSsDO9k7RUiEmZAw==}
+  /tsconfig-paths/3.10.0:
+    resolution: {integrity: sha512-gNtNjSOOaEPPXvomTEvLj65Ke8IUCYmmTCBTsdKu+cZWGrOlIZcorKfnb9PKkj9WT/M0qjiOo+22b7KD+n0NLw==}
     dependencies:
-      '@types/json5': 0.0.29
-      json5: 1.0.1
+      json5: 2.2.0
       minimist: 1.2.5
       strip-bom: 3.0.0
     dev: true
