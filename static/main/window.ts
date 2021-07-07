@@ -97,14 +97,16 @@ export async function CreateWindow(
     .on('move', windowPosUpdated);
 
   // Load the base URL
-  mainWindow
-    .loadURL(
+  try {
+    await mainWindow.loadURL(
       isDev
         ? `http://localhost:${process.env.PORT || 3000}`
         : // If this file moves, you have to fix this to make it work for release
           `file://${path.join(__dirname, '../index.html')}`,
-    )
-    .catch(err);
+    );
+  } catch (e) {
+    err(e);
+  }
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()

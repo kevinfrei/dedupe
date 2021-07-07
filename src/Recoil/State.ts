@@ -4,6 +4,7 @@ import { syncWithMainEffect } from './Helpers';
 export const foldersToScanState = atom<string[]>({
   key: 'folders',
   default: [],
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   effects_UNSTABLE: [syncWithMainEffect(true)],
 });
 

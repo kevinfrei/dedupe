@@ -6,7 +6,7 @@ function hashFile(filename: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const shasum = createHash('sha1');
     try {
-      let s = fs.createReadStream(filename);
+      const s = fs.createReadStream(filename);
       s.on('data', function (data) {
         shasum.update(data);
       });
@@ -60,7 +60,7 @@ function updateProgress(
   t2: number,
   doit?: boolean,
 ) {
-  let now = Date.now();
+  const now = Date.now();
   const pc1 = Math.round((p1 / t1) * 100);
   const pc2 = Math.round((p2 / t2) * 100);
   if (now - time > 250 || doit) {

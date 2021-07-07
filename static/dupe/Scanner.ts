@@ -9,11 +9,11 @@ const err = MakeError('Scanner-err');
 
 const abortRequests: Set<string> = new Set();
 
-export function requestAbort(fldr: string) {
+export function requestAbort(fldr: string): void {
   abortRequests.add(fldr);
 }
 
-export function clearAbort(fldr: string) {
+export function clearAbort(fldr: string): void {
   abortRequests.delete(fldr);
 }
 
