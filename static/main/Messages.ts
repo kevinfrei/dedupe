@@ -1,4 +1,4 @@
-import { FTON, MakeError, MakeLogger, Type } from '@freik/core-utils';
+import { MakeError, MakeLogger } from '@freik/core-utils';
 import { shell } from 'electron';
 import { promises as fsp } from 'fs';
 
@@ -21,37 +21,15 @@ export function showFile(filePath?: string): Promise<void> {
 /**
  * Move a file to the trash, using a nodejs module someone else wrote for me :)
  */
-export async function trashFile(flattenedPaths?: string): Promise<void> {
-  if (!flattenedPaths) {
-    err('No arg to trash-file');
-    return;
-  }
-  let data;
+export async function trashFile(flattenedPaths: string[]): Promise<void> {
   try {
-    data = FTON.parse(flattenedPaths);
-  } catch (e) {
-    err(`${flattenedPaths} doesn't appear to be formatted properly`);
-    err(e);
+    for (const file of flattenedPaths) {
+      await fsp.unlink(file);
+    }
+    log('deleted files:');
+    log(flattenedPaths);
     return;
-  }
-  try {
-    if (Type.isString(data)) {
-      // TODO: Update the file list when the file has been deleted!
-      await fsp.unlink(data);
-      log('deleted files:');
-      log(data);
-      return;
-    }
-    if (Type.isArrayOfString(data)) {
-      // TODO: Update the file list when the file has been deleted!
-      for (const file of data) {
-        await fsp.unlink(file);
-      }
-      log('deleted files:');
-      log(data);
-      return;
-    }
   } catch (e) {
-    err(`${flattenedPaths} doesn't appear to be formatted properly`);
+    err(`${flattenedPaths.join(', ')} doesn't appear to be formatted properly`);
   }
 }

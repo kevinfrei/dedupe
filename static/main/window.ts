@@ -3,6 +3,7 @@ import { BrowserWindow, dialog } from 'electron';
 import isDev from 'electron-is-dev';
 import { OpenDialogOptions } from 'electron/main';
 import * as path from 'path';
+import { RegisterListeners } from './Communication';
 import { OnWindowCreated } from './electronSetup';
 import {
   GetBrowserWindowPos,
@@ -51,10 +52,8 @@ const windowPosUpdated = DebouncedEvery(() => {
 export async function CreateWindow(
   windowCreated: OnWindowCreated,
 ): Promise<void> {
-  /* 
-  await RegisterProtocols();
   RegisterListeners();
-  */
+
   // Create the window, but don't show it just yet
   mainWindow = new BrowserWindow({
     ...GetBrowserWindowPos(windowPos),

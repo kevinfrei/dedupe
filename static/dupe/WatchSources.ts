@@ -1,4 +1,4 @@
-import { FTON, MakeError, MakeLogger, Type } from '@freik/core-utils';
+import { MakeError, MakeLogger, Type, Unpickle } from '@freik/core-utils';
 import { AsyncSend } from '../main/Communication';
 import { Persistence } from '../main/persist';
 import { clearAbort, getSizes, requestAbort } from './Scanner';
@@ -10,10 +10,10 @@ const err = MakeError('WatchSources-err');
 const currentlyScanning: Set<string> = new Set();
 const completedScanning: Map<string, Map<string, number>> = new Map();
 
-export function WatchSources(foldersFTON: string): boolean {
+export function WatchSources(foldersPickled: string): boolean {
   log('Watching these sources:');
-  log(foldersFTON);
-  const folders = FTON.parse(foldersFTON);
+  log(foldersPickled);
+  const folders = Unpickle(foldersPickled);
   log(folders);
   if (!folders) {
     err('Bailing WatchSources');
