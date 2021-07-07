@@ -7,8 +7,39 @@ const log = MakeLogger('WatchSources', true);
 const err = MakeError('WatchSources-err');
 
 // This is invoked whenever the sources list is changed
-const currentlyScanning: Set<string> = new Set();
-const completedScanning: Map<string, Map<string, number>> = new Map();
+const currentlyScanning = new Set<string>();
+const completedScanning = new Map<string, Map<string, number>>();
+
+async function CountContentsOfFolders(folders: string[]): Promise<void> {
+  const fldrs = new Set(folders);
+  // Stop anything 'mid-scan'
+  for (const curScan of currentlyScanning) {
+    if (!fldrs.has(curScan)) {
+      requestAbort(curScan);
+    }
+  }
+  for (const fldr of folders) {
+    if (!currentlyScanning.has(fldr) && !completedScanning.has(fldr)) {
+      currentlyScanning.add(fldr);
+      try {
+        try {
+          const val = await getSizes(fldr);
+          clearAbort(fldr);
+          if (val) {
+            completedScanning.set(fldr, val);
+            // Send data back to render
+            AsyncSend({ 'folder-size': { name: fldr, size: val.size } });
+          }
+        } finally {
+          currentlyScanning.delete(fldr);
+        }
+      } catch (reason) {
+        err(`Scan for ${fldr} failed`);
+        err(reason);
+      }
+    }
+  }
+}
 
 export function WatchSources(foldersPickled: string): boolean {
   log('Watching these sources:');
@@ -20,32 +51,7 @@ export function WatchSources(foldersPickled: string): boolean {
     return false;
   }
   if (Type.isArrayOfString(folders)) {
-    const fldrs = new Set(folders);
-    // Stop anything 'mid-scan'
-    for (const curScan of currentlyScanning) {
-      if (!fldrs.has(curScan)) {
-        requestAbort(curScan);
-      }
-    }
-    for (const fldr of folders) {
-      if (!currentlyScanning.has(fldr) && !completedScanning.has(fldr)) {
-        currentlyScanning.add(fldr);
-        getSizes(fldr)
-          .then((val: void | Map<string, number>) => {
-            currentlyScanning.delete(fldr);
-            clearAbort(fldr);
-            if (val) {
-              completedScanning.set(fldr, val);
-              // Send data back to render
-              AsyncSend({ 'folder-size': { name: fldr, size: val.size } });
-            }
-          })
-          .catch((reason) => {
-            err(`Scan for ${fldr} failed`);
-            err(reason);
-          });
-      }
-    }
+    CountContentsOfFolders(folders).catch(err);
     return completedScanning.size === folders.length;
   } else {
     err('Bailing for bad type of input');
