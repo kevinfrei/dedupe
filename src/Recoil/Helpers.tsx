@@ -247,7 +247,7 @@ export function Utilities(): JSX.Element {
     }
   });
   const onDupeFiles = useRecoilCallback(({ set }) => (val: unknown) => {
-    if (Type.isMapOf(val, Type.isString, Type.isSetOfString)) {
+    if (Type.isMultiMapOf(val, Type.isString, Type.isString)) {
       set(dupeFilesState, val);
     }
   });

@@ -95,14 +95,17 @@ export function DupeDisplay(): JSX.Element {
     <ul>
       {[...dupeFiles].map(([str, strSet]) => (
         <li key={str}>
-          <PickFileToDelete files={strSet} />
+          <PickFileToDelete files={new Set<string>(...strSet)} />
         </li>
       ))}
     </ul>
   );
   const onRemoveAlts = useRecoilCallback((cbInterface) => async () => {
     for (const [, dupeFileSet] of dupeFiles) {
-      const priList = makePriList(dupeFileSet, foldersToScan);
+      const priList = makePriList(
+        new Set<string>(...dupeFileSet),
+        foldersToScan,
+      );
       if (priList.length && isOnlyPreferred(priList[0].name, priList)) {
         await RemoveFiles(
           cbInterface,
@@ -114,7 +117,7 @@ export function DupeDisplay(): JSX.Element {
   return (
     <div style={style}>
       <PrimaryButton text="Remove alternatives" onClick={onRemoveAlts} />
-      {dupeFiles.size === 0 ? 'No duplicates found' : internal}
+      {dupeFiles.size() === 0 ? 'No duplicates found' : internal}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { MakeMultiMap, MultiMap } from '@freik/core-utils';
 import { createHash } from 'crypto';
 import fs from 'fs';
 import { AsyncSend } from '../main/Communication';
@@ -21,20 +22,28 @@ function hashFile(filename: string): Promise<string> {
   });
 }
 
-const finalHashes: Map<string, Set<string>> = new Map();
+const finalHashes = MakeMultiMap<string, string>();
 
-function countItems<T, U>(map: Map<T, Set<U>>): number {
+function iterSize<U>(iter: IterableIterator<U>): number {
   let count = 0;
-  for (const [, set] of map) {
-    count += set.size;
+  for (const i of iter) {
+    count++;
   }
   return count;
 }
 
-function totalBytes(map: Map<number, Set<string>>): number {
+function countItems<T, U>(map: MultiMap<T, U>): number {
+  let count = 0;
+  for (const [, set] of map) {
+    count += iterSize(set);
+  }
+  return count;
+}
+
+function totalBytes(map: MultiMap<number, string>): number {
   let total = 0;
   for (const [size, files] of map) {
-    total += size * files.size;
+    total += size * iterSize(files);
   }
   return total;
 }
@@ -66,7 +75,7 @@ function updateProgress(
   if (now - time > 250 || doit) {
     time = now;
     AsyncSend({
-      'compute-state': `${finalHashes.size} (${countItems(
+      'compute-state': `${finalHashes.size()} (${countItems(
         finalHashes,
       )}) duplicate files found. ${pc1}% files, ${pc2}% bytes (${toBytes(
         p2,
@@ -76,8 +85,8 @@ function updateProgress(
 }
 
 export async function getHashes(
-  dupes: Map<number, Set<string>>,
-): Promise<Map<string, Set<string>>> {
+  dupes: MultiMap<number, string>,
+): Promise<MultiMap<string, string>> {
   const total = countItems(dupes);
   const bytes = totalBytes(dupes);
   let cur = 0;
@@ -85,18 +94,12 @@ export async function getHashes(
   finalHashes.clear();
   for (const [size, files] of dupes) {
     // TODO: Make this parallel, probably
-    const hashes: Map<string, Set<string>> = new Map();
+    const hashes = MakeMultiMap<string, string>();
     for (const file of files) {
       cur++;
       const hash = await hashFile(file);
       curBytes += size;
-      const fileSet = hashes.get(hash);
-      if (!fileSet) {
-        hashes.set(hash, new Set([file]));
-      } else {
-        fileSet.add(file);
-        finalHashes.set(hash, fileSet);
-      }
+      hashes.set(hash, file);
       updateProgress(cur, total, curBytes, bytes);
     }
   }

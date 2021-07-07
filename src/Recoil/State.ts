@@ -1,3 +1,4 @@
+import { MakeMultiMap, MultiMap } from '@freik/core-utils';
 import { atom, atomFamily } from 'recoil';
 import { syncWithMainEffect } from './Helpers';
 
@@ -18,9 +19,9 @@ export const computeState = atom<string>({
   default: '',
 });
 
-export const dupeFilesState = atom<Map<string, Set<string>>>({
+export const dupeFilesState = atom<MultiMap<string, string>>({
   key: 'dupe-files',
-  default: new Map(),
+  default: MakeMultiMap(),
 });
 
 export const deletedFilesState = atom<Set<string>>({
