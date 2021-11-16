@@ -98,7 +98,7 @@ export async function CreateWindow(
   try {
     await mainWindow.loadURL(
       isDev
-        ? `http://localhost:${process.env.PORT || 3000}`
+        ? `http://localhost:${process.env.PORT || 3001}`
         : // If this file moves, you have to fix this to make it work for release
           `file://${path.join(__dirname, '../index.html')}`,
     );
