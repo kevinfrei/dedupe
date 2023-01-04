@@ -1,4 +1,5 @@
 import { IconButton, Label, PrimaryButton, Stack } from '@fluentui/react';
+import { MakeError } from '@freik/core-utils';
 import { CSSProperties } from 'react';
 import { useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil';
 import './App.css';
@@ -8,6 +9,8 @@ import {
   folderFileCountFamily,
   foldersToScanState,
 } from './Recoil/State';
+
+const err = MakeError('FolderList');
 
 export function FolderPicker(): JSX.Element {
   const folders = useRecoilValue(foldersToScanState);
@@ -19,7 +22,9 @@ export function FolderPicker(): JSX.Element {
       <PrimaryButton
         text="Start Scanning"
         disabled={folders.length === 0 || curState !== ''}
-        onClick={() => InvokeMain('start-scan')}
+        onClick={() => {
+          InvokeMain('start-scan').catch(err);
+        }}
       />
     </div>
   );
@@ -96,7 +101,9 @@ export function FolderList(): JSX.Element {
       {theList}
       <PrimaryButton
         text="Add a folder"
-        onClick={onAddFolderClick}
+        onClick={() => {
+          onAddFolderClick().catch(err);
+        }}
         disabled={curState !== ''}
       />
     </div>

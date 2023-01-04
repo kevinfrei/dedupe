@@ -1,4 +1,5 @@
 import { IconButton, PrimaryButton } from '@fluentui/react';
+import { MakeError } from '@freik/core-utils';
 import { CSSProperties } from 'react';
 import { useRecoilCallback, useRecoilValue } from 'recoil';
 import './App.css';
@@ -9,6 +10,8 @@ import {
   dupeFilesState,
   foldersToScanState,
 } from './Recoil/State';
+
+const err = MakeError('Dupes');
 
 type PriList = { priority: number; name: string }[];
 
@@ -75,7 +78,9 @@ export function PickFileToDelete({
           <IconButton
             iconProps={{ iconName: 'delete' }}
             disabled={isDeleted(name) || isSolo(name)}
-            onClick={() => onTrashClick(name)}
+            onClick={() => {
+              onTrashClick(name).catch(err);
+            }}
           />
           <span style={pickStyle(name)}>{name}</span>
         </li>
@@ -116,7 +121,12 @@ export function DupeDisplay(): JSX.Element {
   });
   return (
     <div style={style}>
-      <PrimaryButton text="Remove alternatives" onClick={onRemoveAlts} />
+      <PrimaryButton
+        text="Remove alternatives"
+        onClick={() => {
+          onRemoveAlts().catch(err);
+        }}
+      />
       {dupeFiles.size() === 0 ? 'No duplicates found' : internal}
     </div>
   );
